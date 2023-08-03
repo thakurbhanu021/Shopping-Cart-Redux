@@ -7,6 +7,8 @@ import { Fragment, useEffect } from "react";
 import Notification from "./components/UI/Notification";
 import { uiActions } from "./store/ui-slice";
 
+let isInitial = true;
+
 function App() {
   const cartShow = useSelector((state) => state.ui.cartIsVisible);
   const notification = useSelector((state)=>state.ui.notification);
@@ -43,6 +45,10 @@ function App() {
         })
       );
     };
+    if(isInitial){
+      isInitial = false;
+      return;
+    }
     sendCartData().catch((err) => {
       dispatch(
         uiActions.showNotification({

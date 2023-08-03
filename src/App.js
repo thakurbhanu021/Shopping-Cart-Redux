@@ -1,25 +1,67 @@
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from "react-redux";
 
-import Cart from './components/Cart/Cart';
-import Layout from './components/Layout/Layout';
-import Products from './components/Shop/Products';
-import { useEffect } from 'react';
+import Cart from "./components/Cart/Cart";
+import Layout from "./components/Layout/Layout";
+import Products from "./components/Shop/Products";
+import { Fragment, useEffect } from "react";
+import Notification from "./components/UI/Notification";
+import { uiActions } from "./store/ui-slice";
 
 function App() {
-  const cartShow = useSelector(state=> state.ui.cartIsVisible);
-  const cart = useSelector(state=> state.cart);
+  const cartShow = useSelector((state) => state.ui.cartIsVisible);
+  const notification = useSelector((state)=>state.ui.notification);
+  const cart = useSelector((state) => state.cart);
 
-  useEffect(()=>{
-    fetch('https://food-order-app-react-6fc17-default-rtdb.firebaseio.com/cart.json',{
-      method: 'PUT',
-      body: JSON.stringify(cart),
-    })
-  },[cart])
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const sendCartData = async () => {
+      dispatch(
+        uiActions.showNotification({
+          status: "pending",
+          title: "Sending..",
+          message: "Sending cart data..",
+        })
+      );
+      const response = await fetch(
+        "https://food-order-app-react-6fc17-default-rtdb.firebaseio.com/cart.json",
+        {
+          method: "PUT",
+          body: JSON.stringify(cart),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Sending cart data failed");
+      }
+
+      dispatch(
+        uiActions.showNotification({
+          status: "success",
+          title: "Success!",
+          message: "Sent cart data successfully",
+        })
+      );
+    };
+    sendCartData().catch((err) => {
+      dispatch(
+        uiActions.showNotification({
+          status: "error",
+          title: "Error!",
+          message: "Sending cart data failed",
+        })
+      );
+    });
+  }, [cart]);
+
   return (
-    <Layout>
-      {cartShow && <Cart />}
-      <Products />
-    </Layout>
+    <Fragment>
+      {notification && <Notification title={notification.title} message={notification.message} status={notification.status}/>}
+      <Layout>
+        {cartShow && <Cart />}
+        <Products />
+      </Layout>
+    </Fragment>
   );
 }
 

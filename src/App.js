@@ -11,26 +11,35 @@ let isInitial = true;
 
 function App() {
   const cartShow = useSelector((state) => state.ui.cartIsVisible);
-  const notification = useSelector((state)=>state.ui.notification);
+  const notification = useSelector((state) => state.ui.notification);
   const cart = useSelector((state) => state.cart);
 
   const dispatch = useDispatch();
 
-  useEffect(()=>{
+  useEffect(() => {
     dispatch(fetchCartData());
-  },[])
+  }, []);
 
   useEffect(() => {
-    if(isInitial){
+    if (isInitial) {
       isInitial = false;
       return;
     }
-    dispatch(sendCartData(cart));
+
+    if (cart.isChanged) {
+      dispatch(sendCartData({items: cart.items, totalQuantity: cart.totalQuantity}));
+    }
   }, [cart, dispatch]);
 
   return (
     <Fragment>
-      {notification && <Notification title={notification.title} message={notification.message} status={notification.status}/>}
+      {notification && (
+        <Notification
+          title={notification.title}
+          message={notification.message}
+          status={notification.status}
+        />
+      )}
       <Layout>
         {cartShow && <Cart />}
         <Products />
